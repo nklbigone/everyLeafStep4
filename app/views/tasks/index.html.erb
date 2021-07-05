@@ -1,0 +1,55 @@
+<p id="notice"><%= notice %></p>
+<body>
+<div class = "container-fluid">
+  <ul class="row">
+    <%= form_with(scope: :search, local: true, url: tasks_path, method: :get) do |form| %>
+      <li><%= form.label :title, 'タスク名:', class:'ml-5' %><li/>
+      <li  id ="title" ><%= form.text_field :title %><li/>
+      <li><%= form.label :status, 'ステータス:', class:'ml-5'%><li/>
+      <li id ="status"><%= form.select  :status, [["未着手", "0"], ["着手中", "1"], ["完了", "2"]], include_blank: '選択してください' %><li/>
+      <br>
+      <li id= "search"><button type="button" class="btn btn-dark" ><%= form.submit '検索', class:'ml-3'  %></button><li/>
+    <% end %>
+  </ul>
+</div>
+  <P>
+  <button type="button" class="btn btn-warning btn-sm"><%= link_to 'タスク作成', new_task_path %></button>
+  </P>
+  <p>
+  <button type="button" class="btn btn-info btn-sm" id="sort_deadline"><%=  link_to "終了期限でソートする", tasks_path(sort_expired: "true") %></button>
+  <button type="button" class="btn btn-info btn-sm" id="sort_priority"><%= link_to "優先度高い順でソート", tasks_path(sort_priority_high: "true") %></button>
+  </p>
+<table class="col-md-12">
+  <thead>
+    <tr>
+      <th class="col-md-2">タスク</th>
+      <th class="col-md-2">作成者</th>
+      <th class="col-md-3" >詳細</th>
+      <th class="col-md-2">期限</th>
+      <th class="col-md-1">ステータス</th>
+      <th class="col-md-1">優先度</th>
+      <th class="col-md-1">閲覧</th>
+      <th class="col-md-1">編集</th>
+      <th class="col-md-1">削除</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @tasks.each do |task| %>
+      <tr>
+        <td id = 'task_list' ><%= task.title %></td>
+        <td><%= task.user.name %></td>
+        <td><%= task.content %></td>
+        <td><%= task.deadline %></td>
+        <td><%= task.status_i18n %></td>
+        <td><%= task.priority_i18n %></td>
+        <td id = 'task_detail'><%= link_to '詳細', task %></td>
+        <td id = 'task_edit'><%= link_to '編集', edit_task_path(task) %></td>
+        <td id = 'task_delete'><%= link_to '削除', task, method: :delete, data: { confirm: '削除しますか?' } %></td>
+      </tr>
+    <% end %>
+     <%= paginate @tasks %>
+  </tbody>
+</table>
+</body>
+
+

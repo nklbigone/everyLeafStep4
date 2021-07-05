@@ -1,0 +1,33 @@
+<h3>管理画面：ユーザーの一覧確認ページ</h3><br>
+
+
+<table class="table">
+<br>
+  <thead>
+    <tr class="table-info">
+      <th><%= t('user.id') %></th>
+      <th><%= t('user.name') %></th>
+      <th><%= t('user.admin') %></th>
+      <th><%= t('user.task_count') %></th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @users.each do |user| %>
+      <tr>
+        <td><%= user.id %></td>
+        <td><%= user.name %></td>
+        <% if user.admin? %>
+          <td>管理者</td>
+        <% else %>
+          <td>一般</td>
+        <% end %>
+        <td><%= user.tasks.count %></td>
+        <td><%= link_to '情報', admin_user_path(user), id: "users_admin_show" %></td>
+        <td><%= link_to '編集', edit_admin_user_path(user), id: "users_admin_index_edit" %></td>
+        <td class="user_row"><%= link_to '削除', admin_user_path(user.id), id: "users_admin_index_delete", method: :delete, data:{ confirm: "本当に削除してよろしいですか？" } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,27 @@
+
+<table class="col-md-12">
+  <thead>
+    <tr>
+      <th class="col-md-2">タスク</th>
+      <th class="col-md-2">ユーザー</th>
+      <th class="col-md-3" >詳細</th>
+      <th class="col-md-2">期限</th>
+      <th class="col-md-1">ステータス</th>
+      <th class="col-md-1">優先度</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if @tasks.count > 0  %>
+      <% @tasks.each do |task| %>
+        <tr>
+          <td id = 'task_list' ><%= task.title %></td>
+          <td><%= task.user.name %></td>
+          <td><%= task.content %></td>
+          <td><%= task.deadline %></td>
+          <td><%= task.status_i18n %></td>
+          <td><%= task.priority_i18n %></td>
+        </tr>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>

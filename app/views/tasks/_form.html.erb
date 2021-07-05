@@ -1,0 +1,49 @@
+<%= form_with(model: task, local: true) do |form| %>
+  <% if task.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(task.errors.count, "error") %> prohibited this task from being saved:</h2>
+
+      <ul>
+      <% task.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="task_list">
+    <p><%= form.label :title %></p>
+    <p><%= form.text_field :title %></p>
+  </div>
+
+  <div class="task_list">
+    <p><%= form.label :content %></p>
+    <p><%= form.text_area :content %></p>
+  </div>
+
+  <div class="task_list">
+    <p><%= form.label :priority %></p>
+    <p><%= form.select :priority, Task.priorities.keys.map {|k| [I18n.t("enums.tasks.priority.#{k}"), k]}, include_blank: "選択して下さい" %></p>
+  </div> 
+
+  <div class="task_list">
+    <p><%= form.label :status %></p>
+    <p><%= form.select :status, Task.statuses.keys.map {|k| [I18n.t("enums.tasks.status.#{k}"), k]}, include_blank: "選択して下さい" %></p>
+  </div>
+
+  <div class="task_list">
+    <p><%= form.label :deadline %></p>
+    <p><%= form.date_field(
+          :deadline, id: "deadline", class: "form-control",
+          use_month_numbers: true, # jan, febとかじゃなくて数字で月を表現
+          start_year:     (Time.now.year), # 何年から表示させるか
+          end_year:       (Time.now.year), # 何年まで表示させるか
+          default:        Date.new(1989, 1, 1), # 最初に表示されている年月日
+          date_separator: '/') # 年月日を仕切る文字
+        %></p>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
