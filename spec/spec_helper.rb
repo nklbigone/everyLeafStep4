@@ -17,17 +17,6 @@ RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
   # assertions if you prefer.
-
-  #headless_chromeのno-sandboxオプション」を追加する
-    config.before(:each) do |example|
-      if example.metadata[:type] == :system
-        driven_by :selenium, using: :headless_chrome, screen_size: [1400, 1400]  do |options|
-          options.add_argument('--lang=ja-jp')
-          options.add_argument('no-sandbox')
-        end
-      end
-    end
-
   config.expect_with :rspec do |expectations|
     # This option will default to `true` in RSpec 4. It makes the `description`
     # and `failure_message` of custom matchers include text for helper methods
@@ -38,7 +27,9 @@ RSpec.configure do |config|
     #     # => "be bigger than 2"
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
-
+  config.before(:each, type: :system) do
+    driven_by(:selenium_chrome)
+  end
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
   config.mock_with :rspec do |mocks|

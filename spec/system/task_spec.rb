@@ -1,110 +1,117 @@
 require 'rails_helper'
 RSpec.describe 'タスク管理機能', type: :system do
+  let!(:user) {FactoryBot.create(:user,name:'永澤',email:'takuya@docomo.ne.jp',password:'password',admin:'管理者')}
+  let!(:task) { FactoryBot.create(:task)}
+  let!(:second_task) { FactoryBot.create(:second_task)}
+  let!(:third_task) { FactoryBot.create(:third_task)}
+  before do
+    visit tasks_path
+  end
+  
+  def login
+    visit new_session_path
+    fill_in "session[email]", with: "takuya@docomo.ne.jp"
+    fill_in "session[password]", with: "password"
+    click_on "Log in"
+    visit tasks_path
+  end
 
   describe '新規作成機能' do
-
     context 'タスクを新規作成した場合' do
       it '作成したタスクが表示される' do
+        login
+
         visit new_task_path
-        fill_in "task_title", with: 'title'
-        fill_in "task_content", with: 'content'
-        select '高', from: 'task[priority]'
-        fill_in 'deadline', with: '2021/06/25'
-        select '未着手', from: 'task_status'
-        click_button '登録する'
-        visit tasks_path
-        expect(page).to have_content '未着手'
+        fill_in "task[title]", with: "task_name"
+        fill_in "task[content]", with: "task_content"
+        find("#task_expired_at_1i").find("option[value='2021']").select_option
+        find("#task_expired_at_2i").find("option[value='5']").select_option
+        find("#task_expired_at_3i").find("option[value='3']").select_option
+        find("#task_expired_at_4i").find("option[value='10']").select_option
+        find("#task_expired_at_5i").find("option[value='15']").select_option
+        find("#task_status").find("option[value='着手']").select_option
+        click_on '登録する'
+        expect(page).to have_content 'task_name'
+        expect(page).to have_content '着手'
       end
     end
-
   end
-
   describe '一覧表示機能' do
-
     context '一覧画面に遷移した場合' do
       it '作成済みのタスク一覧が表示される' do
-        task = FactoryBot.create(:task, title: 'task', deadline: '2020/06/25', status: 'not_yet', priority: 'middle' )
-        visit tasks_path
-        expect(page).to have_content '着手中'
+        login
+        expect(tasks_path).to eq tasks_path
+        expect(page).to have_content 'test_title'
+        expect(page).to have_content 'test_title2'
+        expect(page).to have_content 'test_title3'
+        expect(page).to have_content 'test_content'
+        expect(page).to have_content 'test_content2'
+        expect(page).to have_content 'test_content3'
       end
     end
-
-  end
     context 'タスクが作成日時の降順に並んでいる場合' do
-      it '降順に表示される' do
-        Task.create(title: '1', content: 'context1', deadline: '2020/12/11', status: 'not_yet', priority: 'middle' )
-        Task.create(title: '2', content: 'context2', deadline: '2020/12/11', status: 'not_yet', priority: 'middle' )
-        Task.create(title: '3', content: 'context3', deadline: '2020/12/11', status: 'not_yet', priority: 'middle' )
-        visit tasks_path
-        expect(Task.order("created_at DESC").map(&:title)).to eq ["3", "2", "1"]
+      it '新しいタスクが一番上に表示される' do
+        login
+        task_list = all('.tasks-index_item_title')
+        expect(task_list.first).to have_content Task.order(created_at: :desc).first.title
       end
     end
-
-    context '終了期限でソートした場合' do
-      it 'タスクが終了期限順に並んでいる' do
-        Task.create(title: '1', content: 'context1', deadline: '2020/11/30', status: 'not_yet', priority: 'middle' )
-        Task.create(title: '2', content: 'context2', deadline: '2020/11/29', status: 'not_yet', priority: 'middle' )
-        Task.create(title: '3', content: 'context3', deadline: '2020/11/28', status: 'not_yet', priority: 'middle' )
-        visit tasks_path
-        click_on "sort_deadline"
-        visit tasks_path(sort_expired: "true")
-        visit tasks_path
-        expect(Task.order("deadline DESC").map(&:title)).to eq ["1", "2", "3"]
+    context 'タスクが終了期限の降順に並んでいる場合' do
+      it '終了期限の遅いタスクが一番上に表示される' do
+        login
+        within '.sort_expired' do
+          click_on '終了期限でソートする'
+        end
+        task_list = all('.tasks-index_item_title')
+        expect(task_list.first).to have_content Task.order(expired_at: :desc).first.title
       end
     end
-
+    context 'タスクが優先順位の高い順に並んでいる場合' do
+      it '優先順位の高いタスクが一番上に表示される' do
+        login
+        within '.sort_expired' do
+          click_on '優先順位でソートする'
+        end
+        task_list = all('.tasks-index_item_title')
+        expect(task_list.first).to have_content Task.order(priority: :desc).first.title
+      end
+    end
+  end
+  describe '検索機能' do
+    context 'タイトルで検索した場合' do
+      it '該当タイトルのタスクが表示される' do
+        login
+        fill_in "タスク名で検索", with: "2"
+        click_on '検索'
+        expect(page).to have_content 'test_content2'
+      end
+    end
+    context 'ステータスで検索した場合' do
+      it '該当ステータスのタスクが表示される' do
+        login
+        find("#search_status").find("option[value='完了']").select_option
+        click_on 'search'
+        expect(page).to have_content Task.find_by(status: '完了').title
+      end
+    end
+    context 'タイトルとステータスの両方で検索した場合' do
+      it '該当のタスクが表示される' do
+        login
+        fill_in "タスク名で検索", with: "2"
+        find("#search_status").find("option[value='着手']").select_option
+        click_on 'search'
+        expect(page).to have_content 'test_content2'
+        expect(page).to have_content '着手'
+      end
+    end
+  end
     describe '詳細表示機能' do
       context '任意のタスク詳細画面に遷移した場合' do
         it '該当タスクの内容が表示される' do
-          @task = FactoryBot.create(:task,title: 'task1',content: 'content1', deadline: '2020/11/30', status: 'not_yet', priority: 'middle' )
-          visit task_path(@task)
-          expect(page).to have_content 'task1'
-          expect(page).to have_content 'content1'
+          login
+          visit task_path(task.id)
+          expect(task).to be_valid
         end
       end
     end
-   
-     describe '検索機能' do
-      before do
-        FactoryBot.create(:task, title: "task101", deadline: '2021/06/30', status: 'not_yet', priority: 'middle' )
-        FactoryBot.create(:second_task, title: "test100", deadline: '2021/06/30', status: 'completed', priority: 'middle' )
-      end
-      context 'タイトルであいまい検索をした場合' do
-        it "検索キーワードを含むタスクで絞り込まれる" do
-          visit tasks_path
-          fill_in 'title', with: 'task'
-          click_on '検索'
-          expect(page).to have_content 'task'
-        end
-      end
-   
-      context 'ステータス検索をした場合' do
-        it "ステータスに完全一致するタスクが絞り込まれる" do
-          visit tasks_path
-          select "未着手", from: "status"
-          click_on '検索'
-          expect(page).to have_content '未着手'
-        end
-      end
-   
-      context 'タイトルのあいまい検索とステータス検索をした場合' do
-        it "検索キーワードをタイトルに含み、かつステータスに完全一致するタスク絞り込まれる" do
-          visit tasks_path
-          fill_in 'title', with: 'task'
-          select "未着手", from: "status"
-          click_on '検索'
-          expect(page).to have_content 'task'
-          expect(page).to have_content '未着手'
-        end
-      end
-     end
-
-
 end
-
-
-
-
-
-
-

@@ -10,7 +10,7 @@ class SessionsController < ApplicationController
       if user.admin?
         redirect_to admin_users_path(user.id)  #管理者画面
       else
-        redirect_to show_users_path(user.id)    #ユーザー画面
+        redirect_to user_path(user.id)    #ユーザー画面
       end
     else
       flash.now[:danger] = 'ログインに失敗しました。'
